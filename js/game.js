@@ -185,11 +185,11 @@ class Game {
         
         for (let i = 0; i < cloudCount; i++) {
             this.background.clouds.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height * 2 - this.canvas.height,
-                width: Utils.randomBetween(50, 150),
-                height: Utils.randomBetween(30, 60),
-                speed: Utils.randomBetween(0.03, 0.1) // Minimized speed for nearly stationary clouds
+                x: (i * 112 + 47) % this.canvas.width,               // Deterministic x position
+                y: (i * 73 + 23) % (this.canvas.height * 0.7),       // Deterministic y position
+                width: 50 + ((i * 29) % 100),                         // Deterministic width
+                height: 30 + ((i * 17) % 30),                         // Deterministic height
+                speed: 0                                              // No movement
             });
         }
     }
@@ -619,27 +619,15 @@ class Game {
      * @param {number} deltaTime - Time since last update
      */
     updateBackground(deltaTime) {
-        // Update clouds with minimal horizontal movement
-        for (const cloud of this.background.clouds) {
-            // Move clouds horizontally (reduced speed by 90% from original)
-            cloud.x += cloud.speed * 0.1;
-            
-            // Wrap clouds around when they go off-screen
-            if (cloud.x > this.canvas.width) {
-                cloud.x = -cloud.width;
-                // Keep y-position fixed so clouds don't appear to move vertically
-                cloud.y = cloud.y;
-            }
-        }
-        
-        // Add new clouds as camera moves up, but only when needed
-        if (this.background.clouds.length < 10) {
+        // All background elements are now completely static
+        // Make sure we have enough stationary clouds
+        if (this.background.clouds.length < 10 && Math.random() < 0.01) {
             this.background.clouds.push({
-                x: Utils.randomBetween(-50, this.canvas.width),
-                y: -this.canvas.height - this.camera.y,
-                width: Utils.randomBetween(50, 150),
-                height: Utils.randomBetween(30, 60),
-                speed: Utils.randomBetween(0.03, 0.1) // Further reduced cloud speed
+                x: (this.background.clouds.length * 112 + 47) % this.canvas.width,
+                y: (this.background.clouds.length * 73 + 23) % (this.canvas.height * 0.7),
+                width: 50 + ((this.background.clouds.length * 29) % 100),
+                height: 30 + ((this.background.clouds.length * 17) % 30),
+                speed: 0 // No movement
             });
         }
     }
@@ -1259,375 +1247,13 @@ class Game {
      * Draw the background with decorative elements
      */
     drawBackground() {
-        // Draw advanced background with multiple layers and atmospheric effects
-        
-        // Create a richer sky gradient with multiple color stops for dawn/dusk look
-        const skyGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        skyGradient.addColorStop(0, '#1A2C5B'); // Deep blue at top
-        skyGradient.addColorStop(0.3, '#4A6DB5'); // Mid blue
-        skyGradient.addColorStop(0.6, '#87CEEB'); // Sky blue
-        skyGradient.addColorStop(0.8, '#E6A972'); // Warm horizon glow
-        skyGradient.addColorStop(1, '#39547B'); // Darker bunny blue at bottom
-        this.ctx.fillStyle = skyGradient;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Draw subtle sun/moon with glow effect
-        const timeOfDay = Math.sin(Date.now() * 0.0001) * 0.5 + 0.5; // Value oscillates between 0-1
-        const celestialBodyX = this.canvas.width * 0.8;
-        const celestialBodyY = this.canvas.height * 0.2;
-        const celestialBodySize = 40;
-        
-        // Create glow effect
-        const glowGradient = this.ctx.createRadialGradient(
-            celestialBodyX, celestialBodyY, celestialBodySize * 0.5,
-            celestialBodyX, celestialBodyY, celestialBodySize * 5
-        );
-        
-        if (timeOfDay > 0.5) {
-            // Sun with warm glow
-            glowGradient.addColorStop(0, 'rgba(255, 230, 150, 0.8)');
-            glowGradient.addColorStop(0.2, 'rgba(255, 150, 50, 0.4)');
-            glowGradient.addColorStop(1, 'rgba(255, 150, 50, 0)');
-        } else {
-            // Moon with cool glow
-            glowGradient.addColorStop(0, 'rgba(220, 240, 255, 0.6)');
-            glowGradient.addColorStop(0.2, 'rgba(150, 180, 255, 0.3)');
-            glowGradient.addColorStop(1, 'rgba(150, 180, 255, 0)');
-        }
-        
-        this.ctx.fillStyle = glowGradient;
-        this.ctx.fillRect(celestialBodyX - celestialBodySize * 5, celestialBodyY - celestialBodySize * 5, 
-                        celestialBodySize * 10, celestialBodySize * 10);
-        
-        // Draw the celestial body (sun/moon)
-        if (timeOfDay > 0.5) {
-            // Sun
-            this.ctx.fillStyle = '#FFF8E0';
-        } else {
-            // Moon
-            this.ctx.fillStyle = '#F0F8FF';
-        }
-        this.ctx.beginPath();
-        this.ctx.arc(celestialBodyX, celestialBodyY, celestialBodySize, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        // Add atmospheric haze layer
-        const hazeGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        hazeGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        hazeGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0)');
-        hazeGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
-        this.ctx.fillStyle = hazeGradient;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // PARALLAX BACKGROUND LAYER 1 - Far mountains silhouette
-        this.ctx.save();
-        // Set far mountain parallax to 0 (completely stationary)
-        const farParallaxOffset = this.camera.y * 0.0;
-        
-        // Draw distant mountain range with gradient
-        const mountainY = this.canvas.height * 0.75 - farParallaxOffset;
-        const mountainGradient = this.ctx.createLinearGradient(0, mountainY - 100, 0, mountainY);
-        mountainGradient.addColorStop(0, '#1A3050'); // Dark blue-purple
-        mountainGradient.addColorStop(1, '#2A4060'); // Slightly lighter blue-purple
-        this.ctx.fillStyle = mountainGradient;
-        
-        // Create mountain range silhouette
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, mountainY);
-        
-        // Use a more natural mountain pattern
-        const mountainCount = 5;
-        const mountainWidth = this.canvas.width / mountainCount;
-        
-        for (let i = 0; i <= mountainCount; i++) {
-            const x = i * mountainWidth;
-            const y = mountainY - (Math.sin(i * 3.1) * 60 + 40);
-            
-            if (i === 0) {
-                this.ctx.lineTo(x, y);
-            } else {
-                // Create a more natural mountain curve with control points
-                const cpX1 = x - mountainWidth * 0.8;
-                const cpY1 = mountainY - (Math.sin((i-0.4) * 3.1) * 80 + 20);
-                const cpX2 = x - mountainWidth * 0.3;
-                const cpY2 = y - 20 * Math.sin(i * 2.5);
-                
-                this.ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, x, y);
-            }
-        }
-        
-        this.ctx.lineTo(this.canvas.width, mountainY);
-        this.ctx.lineTo(this.canvas.width, this.canvas.height);
-        this.ctx.lineTo(0, this.canvas.height);
-        this.ctx.closePath();
-        this.ctx.fill();
-        
-        // Draw snow caps on mountains
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        this.ctx.beginPath();
-        
-        for (let i = 0; i <= mountainCount; i++) {
-            const x = i * mountainWidth;
-            const peakY = mountainY - (Math.sin(i * 3.1) * 60 + 40);
-            
-            // Only add snow to the higher peaks
-            if (peakY < mountainY - 50) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x - 20, peakY + 15);
-                this.ctx.lineTo(x, peakY);
-                this.ctx.lineTo(x + 20, peakY + 15);
-                this.ctx.closePath();
-                this.ctx.fill();
-            }
-        }
-        
-        this.ctx.restore();
-        
-        // PARALLAX BACKGROUND LAYER 2 - Far trees and hills
-        this.ctx.save();
-        // Set trees/hills parallax to 0 (completely stationary)
-        const midParallaxOffset = this.camera.y * 0.0;
-        const treeLine = this.canvas.height * 0.8 - midParallaxOffset;
-        
-        // Draw far hills/trees with improved gradient
-        const hillsGradient = this.ctx.createLinearGradient(0, treeLine - 70, 0, treeLine);
-        hillsGradient.addColorStop(0, '#304030'); // Darker green for distance
-        hillsGradient.addColorStop(1, '#3A5030'); // Slight lighter green for closer parts
-        this.ctx.fillStyle = hillsGradient;
-        
-        // Draw a few hills with different heights
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, treeLine);
-        
-        const hillCount = 6;
-        const hillWidth = this.canvas.width / hillCount;
-        
-        for (let i = 0; i <= hillCount; i++) {
-            const x = i * hillWidth;
-            const hillHeight = Math.sin(i * 2.5) * 30 + 40;
-            
-            if (i === 0) {
-                this.ctx.lineTo(x, treeLine - hillHeight);
-            } else {
-                // More natural hill curve
-                const cpX1 = x - hillWidth * 0.7;
-                const cpY1 = treeLine - Math.sin((i-0.3) * 2.5) * 20 - 30;
-                const cpX2 = x - hillWidth * 0.3;
-                const cpY2 = treeLine - hillHeight - 10 * Math.sin(i);
-                
-                this.ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, x, treeLine - hillHeight);
-            }
-        }
-        
-        this.ctx.lineTo(this.canvas.width, treeLine);
-        this.ctx.lineTo(this.canvas.width, this.canvas.height);
-        this.ctx.lineTo(0, this.canvas.height);
-        this.ctx.fill();
-        
-        // Draw tree silhouettes on hills
-        this.ctx.fillStyle = '#253525'; // Darker green for trees
-        
-        for (let i = 0; i < 20; i++) {
-            const treeX = Math.random() * this.canvas.width;
-            const treeHeight = Math.random() * 30 + 40;
-            const treeWidth = treeHeight * 0.7;
-            
-            // Calculate base Y position on the hills
-            let baseY = treeLine;
-            const hillPosition = treeX / hillWidth;
-            const hillIndex = Math.floor(hillPosition);
-            const hillFraction = hillPosition - hillIndex;
-            
-            if (hillIndex < hillCount) {
-                const leftHeight = Math.sin(hillIndex * 2.5) * 30 + 40;
-                const rightHeight = Math.sin((hillIndex + 1) * 2.5) * 30 + 40;
-                const interpolatedHeight = leftHeight * (1 - hillFraction) + rightHeight * hillFraction;
-                baseY = treeLine - interpolatedHeight;
-            }
-            
-            // Draw tree shape (triangle for pine trees)
-            this.ctx.beginPath();
-            this.ctx.moveTo(treeX - treeWidth / 2, baseY);
-            this.ctx.lineTo(treeX, baseY - treeHeight);
-            this.ctx.lineTo(treeX + treeWidth / 2, baseY);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // Add tree trunk
-            this.ctx.fillStyle = '#3D2817'; // Brown for trunk
-            this.ctx.fillRect(treeX - treeWidth / 10, baseY - treeHeight / 5, treeWidth / 5, treeHeight / 5);
-            this.ctx.fillStyle = '#253525'; // Reset to tree color
-        }
-        
-        this.ctx.restore();
-        
-        // PARALLAX BACKGROUND LAYER 3 - Mid ground trees and elements (MADE COMPLETELY STATIONARY)
-        this.ctx.save();
-        // Remove parallax effect completely - fixed position regardless of camera movement
-        const midGroundY = this.canvas.height * 0.9;
-        
-        // Mid-ground trees with more detail
-        this.ctx.fillStyle = '#4B5320'; // Pepe green for mid-ground trees
-        
-        // Generate trees using fixed positions for consistency
-        const treePositions = [];
-        for (let i = 0; i < 15; i++) {
-            treePositions.push({
-                x: (i * 83 + 50) % this.canvas.width,
-                size: 0.8 + (((i * 17) % 53) / 100) // Deterministic sizes between 0.8-1.33
-            });
-        }
-        
-        // Draw each tree with more detail but at fixed position
-        for (const tree of treePositions) {
-            const treeX = tree.x;
-            const treeSize = tree.size;
-            const treeHeight = 70 * treeSize;
-            const treeWidth = 40 * treeSize;
-            const baseY = midGroundY;
-            
-            // Draw trunk
-            this.ctx.fillStyle = '#5E4B2D'; // Brown trunk
-            this.ctx.fillRect(treeX - treeWidth/6, baseY - treeHeight/3, treeWidth/3, treeHeight/3);
-            
-            // Draw tree crown (more detailed shape)
-            this.ctx.fillStyle = '#71A744'; // Brighter green for closer trees
-            
-            // Draw a more natural looking tree crown
-            this.ctx.beginPath();
-            this.ctx.moveTo(treeX - treeWidth/2, baseY - treeHeight/3);
-            this.ctx.quadraticCurveTo(
-                treeX - treeWidth/4, baseY - treeHeight/2,
-                treeX, baseY - treeHeight
-            );
-            this.ctx.quadraticCurveTo(
-                treeX + treeWidth/4, baseY - treeHeight/2,
-                treeX + treeWidth/2, baseY - treeHeight/3
-            );
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // Add highlights to trees
-            const timeOfDay = Math.sin(Date.now() * 0.0001) * 0.5 + 0.5; // Value oscillates between 0-1
-            if (timeOfDay > 0.5) { // Only during "day"
-                this.ctx.fillStyle = 'rgba(255, 255, 150, 0.2)';
-                this.ctx.beginPath();
-                this.ctx.moveTo(treeX - treeWidth/4, baseY - treeHeight/2);
-                this.ctx.quadraticCurveTo(
-                    treeX - treeWidth/8, baseY - treeHeight/1.8,
-                    treeX, baseY - treeHeight/1.2
-                );
-                this.ctx.quadraticCurveTo(
-                    treeX + treeWidth/8, baseY - treeHeight/1.5,
-                    treeX + treeWidth/3, baseY - treeHeight/2.5
-                );
-                this.ctx.closePath();
-                this.ctx.fill();
-            }
-        }
-        
-        // Draw ground and grass - completely stationary
-        const groundGradient = this.ctx.createLinearGradient(0, midGroundY, 0, this.canvas.height);
-        groundGradient.addColorStop(0, '#8B4513'); // Brown for dirt
-        groundGradient.addColorStop(0.2, '#5E4B2D'); // Darker brown
-        groundGradient.addColorStop(1, '#3D2817'); // Even darker for depth
-        
-        this.ctx.fillStyle = groundGradient;
-        this.ctx.fillRect(0, midGroundY, this.canvas.width, this.canvas.height - midGroundY);
-        
-        // Add grass details on top of the ground - use fixed seed for consistency
-        this.ctx.fillStyle = '#71A744'; // Grass green
-        
-        // Draw grass tufts with deterministic pattern
-        for (let i = 0; i < this.canvas.width; i += 10) {
-            const grassHeight = 5 + ((i * 7) % 15); // Deterministic height between 5-20
-            this.ctx.beginPath();
-            this.ctx.moveTo(i, midGroundY);
-            this.ctx.lineTo(i + 5, midGroundY - grassHeight);
-            this.ctx.lineTo(i + 10, midGroundY);
-            this.ctx.fill();
-        }
-        
-        // Add fixed flowers in the grass
-        for (let i = 0; i < 20; i++) {
-            const flowerX = (i * 53 + 23) % this.canvas.width;
-            const flowerY = midGroundY - ((i * 3) % 10); // Fixed heights
-            const flowerSize = 3 + ((i * 11) % 3); // Fixed sizes between 3-6
-            
-            // Deterministic flower color
-            this.ctx.fillStyle = i % 2 === 0 ? '#FF69B4' : '#FFFFFF';
-            
-            // Draw flower
-            this.ctx.beginPath();
-            this.ctx.arc(flowerX, flowerY, flowerSize, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            // Draw yellow center
-            this.ctx.fillStyle = '#FFFF00';
-            this.ctx.beginPath();
-            this.ctx.arc(flowerX, flowerY, flowerSize / 2, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-        
-        // Draw umbrellas in the background (appears only if score exceeds 300) - fixed positions
-        if (this.score > 300) {
-            const umbrellaCount = Math.floor(this.score / 300); // More umbrellas as score increases
-            
-            for (let i = 0; i < Math.min(umbrellaCount, 5); i++) {
-                const umbrellaX = ((i * 567) % this.canvas.width) - 50; // Deterministic position
-                const umbrellaY = midGroundY - 50 - (i * 20); // Vary the height but fixed
-                
-                // Draw umbrella with shadow
-                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                this.ctx.shadowBlur = 10;
-                this.ctx.shadowOffsetX = 5;
-                this.ctx.shadowOffsetY = 5;
-                
-                // Umbrella top
-                this.ctx.beginPath();
-                this.ctx.fillStyle = '#8B3A3A'; // Umbrella red
-                this.ctx.arc(umbrellaX, umbrellaY, 30, Math.PI, 0, false);
-                this.ctx.fill();
-                
-                // Reset shadow
-                this.ctx.shadowColor = 'transparent';
-                this.ctx.shadowBlur = 0;
-                this.ctx.shadowOffsetX = 0;
-                this.ctx.shadowOffsetY = 0;
-                
-                // Umbrella handle
-                this.ctx.strokeStyle = '#5E2727'; // Darker red
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.moveTo(umbrellaX, umbrellaY);
-                this.ctx.lineTo(umbrellaX, umbrellaY + 50);
-                this.ctx.stroke();
-                
-                // Umbrella ribs
-                this.ctx.strokeStyle = '#5E2727'; // Darker red
-                this.ctx.lineWidth = 1;
-                for (let angle = Math.PI; angle <= 2 * Math.PI; angle += Math.PI / 6) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(umbrellaX, umbrellaY);
-                    this.ctx.lineTo(
-                        umbrellaX + Math.cos(angle) * 30,
-                        umbrellaY + Math.sin(angle) * 30
-                    );
-                    this.ctx.stroke();
-                }
-            }
-        }
-        
-        this.ctx.restore();
-        
-        // Draw some floating clouds with very minimal parallax effect
+        // Draw some completely static clouds with NO parallax effect
         this.ctx.save();
         this.ctx.globalAlpha = 0.8;
         
         for (const cloud of this.background.clouds) {
-            // Apply extremely minimal parallax effect for clouds (nearly stationary)
-            const parallaxFactor = 0.003 - (cloud.width / 50000);
-            const adjustedY = cloud.y - this.camera.y * parallaxFactor;
+            // No parallax effect - clouds are completely stationary
+            const adjustedY = cloud.y;
             
             // Only draw clouds that are visible on screen (with some margin)
             if (adjustedY > -cloud.height * 2 && adjustedY < this.canvas.height + cloud.height) {
@@ -1646,31 +1272,6 @@ class Game {
                 this.ctx.arc(centerX + cloud.width * 0.4, centerY + cloud.height * 0.1, cloud.width * 0.2, 0, Math.PI * 2);
                 this.ctx.arc(centerX - cloud.width * 0.4, centerY + cloud.height * 0.05, cloud.width * 0.2, 0, Math.PI * 2);
                 this.ctx.fill();
-                
-                // Add subtle highlight based on time of day
-                if (timeOfDay > 0.5) {
-                    // Daytime - subtle gold/pink highlight on top
-                    const highlightGradient = this.ctx.createLinearGradient(
-                        centerX, centerY - cloud.height * 0.5,
-                        centerX, centerY + cloud.height * 0.5
-                    );
-                    highlightGradient.addColorStop(0, 'rgba(255, 237, 213, 0.4)');
-                    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    
-                    this.ctx.fillStyle = highlightGradient;
-                    this.ctx.beginPath();
-                    this.ctx.arc(centerX, centerY - cloud.height * 0.1, cloud.width * 0.28, 0, Math.PI * 2);
-                    this.ctx.arc(centerX + cloud.width * 0.2, centerY - cloud.height * 0.2, cloud.width * 0.23, 0, Math.PI * 2);
-                    this.ctx.arc(centerX - cloud.width * 0.2, centerY - cloud.height * 0.1, cloud.width * 0.23, 0, Math.PI * 2);
-                    this.ctx.fill();
-                } else {
-                    // Nighttime - subtle blue highlight
-                    this.ctx.fillStyle = 'rgba(180, 200, 255, 0.2)';
-                    this.ctx.beginPath();
-                    this.ctx.arc(centerX, centerY, cloud.width * 0.28, 0, Math.PI * 2);
-                    this.ctx.arc(centerX + cloud.width * 0.2, centerY - cloud.height * 0.1, cloud.width * 0.23, 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
             }
         }
         
