@@ -14,8 +14,27 @@ class Game {
         // Set canvas size based on container size
         this.resizeCanvas();
         
-        // Add resize listener to adjust canvas on window resize
-        window.addEventListener('resize', () => this.resizeCanvas());
+        // Add resize listener to adjust canvas on window resize with better handling
+        window.addEventListener('resize', () => {
+            console.log('Window resized, updating canvas');
+            // Add delay to ensure proper resizing after orientation changes
+            setTimeout(() => this.resizeCanvas(), 100);
+        });
+        
+        // Add specific listeners for mobile orientation changes
+        window.addEventListener('orientationchange', () => {
+            console.log('Orientation changed, updating canvas');
+            // Delay resize to ensure screen dimensions have updated
+            setTimeout(() => this.resizeCanvas(), 200);
+        });
+        
+        // Handle visibility changes to prevent issues when app goes to background
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('App visible again, updating canvas');
+                this.resizeCanvas();
+            }
+        });
         
         // Game state
         this.isRunning = false;
@@ -891,16 +910,16 @@ class Game {
     }
     
     /**
-     * Resize canvas to match container size
+     * Resize the canvas to fit the container
      */
     resizeCanvas() {
-        const container = this.canvas.parentElement;
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
+        // Get window dimensions instead of container
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
         
-        // Set canvas dimensions to match container
-        this.canvas.width = containerWidth;
-        this.canvas.height = containerHeight;
+        // Set canvas dimensions to match window size
+        this.canvas.width = windowWidth;
+        this.canvas.height = windowHeight;
         
         // Log canvas dimensions for debugging
         console.log(`Canvas resized to ${this.canvas.width}x${this.canvas.height}`);
@@ -911,6 +930,16 @@ class Game {
         
         // Adjust game entities for the new canvas size
         this.adjustEntitiesForResize(isPortrait, isMobile);
+        
+        // Force camera position update
+        if (this.player) {
+            const targetPlayerScreenY = this.canvas.height * 0.7;
+            this.camera.y = this.player.y - targetPlayerScreenY;
+            this.camera.targetY = this.camera.y;
+            
+            // Log camera position for debugging
+            console.log(`Camera position updated to ${this.camera.y}`);
+        }
         
         // Re-render if game is already running
         if (this.isRunning) {
@@ -1259,7 +1288,8 @@ class Game {
      * Draw the background with decorative elements
      */
     drawBackground() {
-        // Draw advanced background with multiple layers and atmospheric effects
+        // Clear the entire canvas first to prevent any artifacts
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Create a richer sky gradient with multiple color stops for dawn/dusk look
         const skyGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
@@ -1268,6 +1298,8 @@ class Game {
         skyGradient.addColorStop(0.6, '#87CEEB'); // Sky blue
         skyGradient.addColorStop(0.8, '#E6A972'); // Warm horizon glow
         skyGradient.addColorStop(1, '#39547B'); // Darker bunny blue at bottom
+        
+        // Fill the entire canvas with the gradient
         this.ctx.fillStyle = skyGradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         

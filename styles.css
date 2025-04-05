@@ -38,6 +38,8 @@ html, body {
     width: 100%;
     overflow: hidden;
     font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -48,48 +50,45 @@ body {
     min-height: 100vh;
     color: var(--ui-light);
     background: linear-gradient(135deg, var(--pepe-dark-green), var(--bunny-dark-blue));
+    position: fixed; /* Prevent any scrolling */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .game-container {
     position: relative;
-    width: 400px;
-    height: 900px;
+    width: 100%;
+    height: 100%;
     border: none;
-    border-radius: 25px;
+    border-radius: 0; /* Remove border radius on mobile */
     overflow: hidden;
-    box-shadow: 
-        0 15px 30px rgba(0, 0, 0, 0.4), 
-        0 5px 15px rgba(0, 0, 0, 0.3), 
-        0 0 100px rgba(113, 167, 68, 0.15);
-    background-color: var(--ui-dark);
+    box-shadow: none; /* Remove shadow on mobile for better performance */
+    background-color: transparent; /* Make container transparent */
     
-    /* Advanced outline glow */
-    --outline-size: 1px;
-    --outline-color: rgba(255, 255, 255, 0.1);
-    outline: var(--outline-size) solid var(--outline-color);
-    position: relative;
+    /* Remove outline which might cause spacing issues */
+    outline: none;
     
-    /* Responsive sizing */
-    max-width: 95vw;
-    max-height: 90vh;
+    /* Responsive sizing - fill the screen completely */
+    max-width: 100vw;
+    max-height: 100vh;
     
-    /* Maintain aspect ratio while resizing */
-    aspect-ratio: 400/650;
+    /* Remove aspect ratio constraint */
+    aspect-ratio: auto;
     
-    /* Apply subtle animation */
-    animation: container-float 6s ease-in-out infinite;
-}
-
-@keyframes container-float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-5px) scale(1.005); }
+    /* Remove animation that might cause rendering issues */
+    animation: none;
 }
 
 #gameCanvas {
-    background: linear-gradient(to bottom, var(--sky-blue), var(--bunny-blue));
+    background: transparent; /* Let the game handle the background */
     width: 100%;
     height: 100%;
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* Modern score display with glass morphism */
