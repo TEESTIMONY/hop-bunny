@@ -8,7 +8,7 @@ class Platform {
      * @param {number} y - Y position
      * @param {number} width - Platform width
      * @param {number} height - Platform height
-     * @param {string} type - Platform type ('normal', 'bouncy', 'breakable', 'moving', 'disappearing')
+     * @param {string} type - Platform type: 'normal', 'bouncy', 'breakable', 'moving', 'disappearing'
      */
     constructor(x, y, width, height, type = 'normal') {
         // Position and size
@@ -17,42 +17,45 @@ class Platform {
         this.width = width;
         this.height = height;
         
-        // Type and state
+        // Platform properties
         this.type = type;
         this.active = true;
-        
-        // Properties for special platform types
         this.opacity = 1;
-        this.breakProgress = 0;
-        this.direction = Math.random() > 0.5 ? 1 : -1; // For moving platforms
-        this.velocityX = 0;
-        this.maxVelocityX = 2; // For moving platforms
-        this.disappearTimer = 0;
         
-        // Animation time for visual effects
+        // Movement properties (for moving platforms)
+        this.direction = Math.random() < 0.5 ? -1 : 1;
+        this.speed = 0.3 + Math.random() * 0.4;
+        this.initialX = x;
+        this.moveRange = 30 + Math.random() * 20;
+        
+        // Animation properties
         this.animationTime = 0;
+        this.breakProgress = 0;
+        this.disappearTimer = 0;
+        this.isDisappearing = false;
+        this.particleEffects = [];
         
-        // Colors for different platform types
+        // Visual properties
         this.colors = {
             normal: {
-                light: '#5D7FBA', // Light blue (Bunny theme)
-                dark: '#39547B'   // Dark blue
+                light: '#5B9BD5', // Light blue
+                dark: '#2A5395'   // Dark blue
             },
             bouncy: {
-                light: '#66DD66', // Bright green
-                dark: '#2A8C2A'   // Dark green
+                light: '#71A744', // Light green
+                dark: '#4B5320'   // Dark green
             },
             breakable: {
-                light: '#C9873C', // Light wood color
-                dark: '#8B4513'   // Dark wood color
+                light: '#8B5A2B', // Light brown
+                dark: '#5E4B2D'   // Dark brown
             },
             moving: {
-                light: '#71A744', // Pepe green light
-                dark: '#4B5320'   // Pepe green dark
+                light: '#71A744', // Light green (same as bouncy)
+                dark: '#4B5320'   // Dark green
             },
             disappearing: {
-                light: '#FF6B6B', // Light red
-                dark: '#8B3A3A'   // Dark red
+                light: '#D55B5B', // Light red
+                dark: '#A32A2A'   // Dark red
             }
         };
     }
@@ -60,31 +63,34 @@ class Platform {
     /**
      * Update platform state
      * @param {number} deltaTime - Time since last update
-     * @param {number} canvasWidth - Width of the game canvas
+     * @param {number} canvasWidth - Canvas width for movement bounds
      */
     update(deltaTime, canvasWidth) {
         // Update animation time
         this.animationTime += deltaTime * 0.01;
         
-        // Handle special platform behaviors
         switch (this.type) {
             case 'moving':
-                // Move platform left and right
-                this.velocityX = this.direction * this.maxVelocityX;
-                this.x += this.velocityX;
+                // Move platform back and forth with slower animation
+                const animationSpeed = 0.15; // Reduced from 0.3 for even slower movement
+                this.x = this.initialX + Math.sin(this.animationTime * animationSpeed) * this.moveRange * this.direction;
                 
-                // Reverse direction at screen edges
-                if (this.x <= 0 || this.x + this.width >= canvasWidth) {
+                // Ensure platform stays within canvas bounds
+                if (this.x < 0) {
+                    this.x = 0;
+                    this.direction *= -1;
+                } else if (this.x + this.width > canvasWidth) {
+                    this.x = canvasWidth - this.width;
                     this.direction *= -1;
                 }
                 break;
                 
             case 'breakable':
-                // Update break animation if broken
+                // If breaking, update break progress
                 if (this.breakProgress > 0) {
-                    this.breakProgress += deltaTime * 0.05;
-                    this.opacity = 1 - this.breakProgress;
+                    this.breakProgress += deltaTime * 0.02;
                     
+                    // When break animation completes, deactivate platform
                     if (this.breakProgress >= 1) {
                         this.active = false;
                     }
@@ -93,11 +99,12 @@ class Platform {
                 
             case 'disappearing':
                 // Update disappearing animation
-                if (this.disappearTimer > 0) {
-                    this.disappearTimer += deltaTime;
-                    this.opacity = 1 - (this.disappearTimer / 60);
+                if (this.isDisappearing && this.disappearTimer > 0) {
+                    this.disappearTimer -= deltaTime * 0.002;
+                    this.opacity = this.disappearTimer; // Fade out
                     
-                    if (this.disappearTimer >= 60) {
+                    // Deactivate when fully transparent
+                    if (this.disappearTimer <= 0) {
                         this.active = false;
                     }
                 }
@@ -106,21 +113,27 @@ class Platform {
     }
     
     /**
-     * Break a breakable platform
+     * Break the platform (for breakable platforms)
      */
     break() {
-        if (this.type === 'breakable') {
-            this.breakProgress = 0.01; // Start breaking
+        if (this.type === 'breakable' && this.breakProgress === 0) {
+            this.breakProgress = 0.01; // Start breaking animation
         }
     }
     
     /**
-     * Start disappearing animation for disappearing platforms
+     * Start the disappearing animation for this platform
      */
     startDisappearing() {
-        if (this.type === 'disappearing') {
-            this.disappearTimer = 0.01; // Start disappearing
-        }
+        if (this.isDisappearing) return;
+        
+        this.isDisappearing = true;
+        this.disappearTimer = 1.0; // Start with full timer
+        
+        // Set a short timeout to actually make the platform inactive
+        setTimeout(() => {
+            this.active = false;
+        }, 1000); // 1 second disappear animation
     }
     
     /**
@@ -556,19 +569,19 @@ class PlatformManager {
             const rand = Math.random();
             
             if (score < 300) {
-                // Early game: more bouncy, some moving
-                if (rand < 0.6) {
+                // Early game: more bouncy, fewer moving platforms
+                if (rand < 0.7) {
                     type = 'bouncy';
-                } else if (rand < 0.9) {
+                } else if (rand < 0.8) { // Reduced from 0.9 to 0.8
                     type = 'moving';
                 } else {
                     type = 'normal';
                 }
             } else if (score < 1000) {
-                // Mid game: more variety
-                if (rand < 0.4) {
+                // Mid game: more variety with fewer moving platforms
+                if (rand < 0.5) {
                     type = 'bouncy';
-                } else if (rand < 0.7) {
+                } else if (rand < 0.6) { // Reduced from 0.7 to 0.6
                     type = 'moving';
                 } else if (rand < 0.9) {
                     type = 'breakable';
@@ -576,12 +589,12 @@ class PlatformManager {
                     type = 'disappearing';
                 }
             } else {
-                // Late game: more challenging platforms
-                if (rand < 0.25) {
+                // Late game: more challenging platforms but fewer moving ones
+                if (rand < 0.35) {
                     type = 'bouncy';
-                } else if (rand < 0.5) {
+                } else if (rand < 0.45) { // Reduced from 0.5 to 0.45
                     type = 'moving';
-                } else if (rand < 0.75) {
+                } else if (rand < 0.8) { // Increased breakable chance
                     type = 'breakable';
                 } else {
                     type = 'disappearing';
@@ -603,6 +616,19 @@ class PlatformManager {
             if (score >= 300 && score <= 310) {
                 type = Math.random() < 0.7 ? 'normal' : 'bouncy';
             }
+            
+            // Final check to further reduce moving platforms
+            if (type === 'moving' && Math.random() < 0.7) {
+                // 70% chance to convert a moving platform to another type
+                const fallbackRand = Math.random();
+                if (fallbackRand < 0.5) {
+                    type = 'normal';
+                } else if (fallbackRand < 0.8) {
+                    type = 'bouncy';
+                } else {
+                    type = 'breakable';
+                }
+            }
         }
         
         // Create the platform
@@ -618,18 +644,92 @@ class PlatformManager {
      * Update all platforms
      * @param {number} deltaTime - Time since last update
      * @param {number} cameraY - Camera Y position
+     * @param {Player} player - The player object for checking position
      */
-    update(deltaTime, cameraY) {
+    update(deltaTime, cameraY, player) {
+        // Find the player's current platform (or nearest above platform)
+        let playerCurrentPlatform = null;
+        let playerPlatformY = Infinity;
+        
+        if (player) {
+            // Find the platform the player is standing on or closest platform above
+            for (const platform of this.platforms) {
+                if (platform.y >= player.y + player.height && platform.y < playerPlatformY) {
+                    // This platform is below the player and higher than any previously found platform
+                    playerPlatformY = platform.y;
+                    playerCurrentPlatform = platform;
+                }
+            }
+        }
+        
         // Update existing platforms
         for (let i = this.platforms.length - 1; i >= 0; i--) {
             const platform = this.platforms[i];
             
+            // Store the previous x position before updating (for moving platforms)
+            const previousX = platform.x;
+            
             // Update platform behavior
             platform.update(deltaTime, this.canvasWidth);
             
-            // Remove platforms that are no longer active or are too far below the camera
-            if (!platform.active || platform.y > cameraY + this.canvasHeight + 300) {
+            // Check if this is a moving platform and player exists
+            if (platform.type === 'moving' && player) {
+                // Check if player is standing on this platform
+                const playerBottom = player.y + player.height;
+                const isStandingOnPlatform = 
+                    Math.abs(platform.y - playerBottom) < 5 && 
+                    player.x < platform.x + platform.width && 
+                    player.x + player.width > platform.x;
+                
+                // If player is standing on the platform, move them with it
+                if (isStandingOnPlatform) {
+                    player.x += (platform.x - previousX);
+                }
+                
+                // Prevent platform from pushing player through walls
+                const horizontalCollision = 
+                    player.y + player.height > platform.y && 
+                    player.y < platform.y + platform.height;
+                    
+                if (horizontalCollision) {
+                    // Left edge collision - push player right
+                    if (player.x + player.width > platform.x && 
+                        player.x < platform.x && 
+                        previousX > platform.x) {
+                        player.x = platform.x - player.width - 1;
+                    }
+                    // Right edge collision - push player left
+                    else if (player.x < platform.x + platform.width && 
+                             player.x + player.width > platform.x + platform.width && 
+                             previousX < platform.x) {
+                        player.x = platform.x + platform.width + 1;
+                    }
+                }
+            }
+            
+            // Remove platforms that are no longer active
+            if (!platform.active) {
                 this.platforms.splice(i, 1);
+                continue;
+            }
+            
+            // Remove platforms that are too far below the camera
+            if (platform.y > cameraY + this.canvasHeight + 300) {
+                this.platforms.splice(i, 1);
+                continue;
+            }
+            
+            // If we have a current player platform, make platforms 500 units below it disappear
+            if (playerCurrentPlatform && platform.y > playerCurrentPlatform.y + 500) {
+                // If it's a normal platform, immediately remove it to prevent unwanted landings
+                if (platform.type === 'normal' || platform.type === 'bouncy') {
+                    this.platforms.splice(i, 1);
+                } 
+                // For other platform types, start the disappearing animation if not already started
+                else if (platform.type !== 'disappearing' && !platform.isDisappearing) {
+                    platform.type = 'disappearing';
+                    platform.startDisappearing();
+                }
             }
         }
         
@@ -650,7 +750,9 @@ class PlatformManager {
                 const width = Utils.randomBetween(this.minWidth, this.maxWidth);
                 const x = Utils.randomBetween(0, this.canvasWidth - width);
                 
-                const fillPlatform = new Platform(x, y, width, this.platformHeight, 'normal');
+                // Choose only between normal and bouncy for fill-in platforms, never moving
+                const fillType = Math.random() < 0.7 ? 'normal' : 'bouncy';
+                const fillPlatform = new Platform(x, y, width, this.platformHeight, fillType);
                 this.platforms.push(fillPlatform);
             }
         }
