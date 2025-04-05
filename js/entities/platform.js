@@ -159,8 +159,14 @@ class Platform {
         // Get the current platform's colors
         const colors = this.colors[this.type];
         
+        // Snap to pixel boundaries for crisp rendering on high-DPI screens
+        const x = Math.round(this.x);
+        const y = Math.round(screenY);
+        const width = Math.round(this.width);
+        const height = Math.round(this.height);
+        
         // Create a gradient fill for the platform
-        const gradient = ctx.createLinearGradient(this.x, screenY, this.x, screenY + this.height);
+        const gradient = ctx.createLinearGradient(x, y, x, y + height);
         gradient.addColorStop(0, colors.light);
         gradient.addColorStop(1, colors.dark);
         
@@ -169,16 +175,16 @@ class Platform {
         ctx.beginPath();
         const radius = 8; // Corner radius
         
-        // Draw rounded rectangle
-        ctx.moveTo(this.x + radius, screenY);
-        ctx.lineTo(this.x + this.width - radius, screenY);
-        ctx.quadraticCurveTo(this.x + this.width, screenY, this.x + this.width, screenY + radius);
-        ctx.lineTo(this.x + this.width, screenY + this.height - radius);
-        ctx.quadraticCurveTo(this.x + this.width, screenY + this.height, this.x + this.width - radius, screenY + this.height);
-        ctx.lineTo(this.x + radius, screenY + this.height);
-        ctx.quadraticCurveTo(this.x, screenY + this.height, this.x, screenY + this.height - radius);
-        ctx.lineTo(this.x, screenY + radius);
-        ctx.quadraticCurveTo(this.x, screenY, this.x + radius, screenY);
+        // Draw rounded rectangle with pixel-perfect coordinates
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
         ctx.fill();
         
         // Add platform details based on type
@@ -719,8 +725,8 @@ class PlatformManager {
                 continue;
             }
             
-            // If we have a current player platform, make platforms 500 units below it disappear
-            if (playerCurrentPlatform && platform.y > playerCurrentPlatform.y + 500) {
+            // If we have a current player platform, make platforms 350 units below it disappear
+            if (playerCurrentPlatform && platform.y > playerCurrentPlatform.y + 350) {
                 // If it's a normal platform, immediately remove it to prevent unwanted landings
                 if (platform.type === 'normal' || platform.type === 'bouncy') {
                     this.platforms.splice(i, 1);

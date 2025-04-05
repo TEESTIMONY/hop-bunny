@@ -11,12 +11,6 @@ class Game {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         
-        // Set canvas size based on container size
-        this.resizeCanvas();
-        
-        // Add resize listener to adjust canvas on window resize
-        window.addEventListener('resize', () => this.resizeCanvas());
-        
         // Game state
         this.isRunning = false;
         this.isGameOver = false;
@@ -53,6 +47,9 @@ class Game {
             milestone: null
         };
         
+        // Set up the canvas with proper pixel ratio scaling
+        this.setupCanvas();
+        
         // Initialize game entities
         this.initEntities();
         
@@ -76,6 +73,72 @@ class Game {
         
         // Set up event listeners for control buttons
         this.setupControlButtons();
+    }
+    
+    /**
+     * Initialize the game
+     */
+    init() {
+        // Set up canvas with proper pixel scaling for high-DPI displays
+        this.setupCanvas();
+        
+        // Create sounds
+        this.initSounds();
+        
+        // Initialize entities
+        this.initEntities();
+        
+        // Set up event listeners
+        this.addEventListeners();
+        
+        // Start game loop
+        this.lastTime = Date.now();
+        this.isRunning = true;
+        this.gameLoop();
+    }
+    
+    /**
+     * Set up canvas with proper pixel ratio scaling for high-DPI displays
+     */
+    setupCanvas() {
+        // Get device pixel ratio
+        const pixelRatio = window.devicePixelRatio || 1;
+        
+        // Set canvas dimensions based on device pixel ratio
+        const displayWidth = this.canvas.clientWidth;
+        const displayHeight = this.canvas.clientHeight;
+        
+        // Set the canvas dimensions with the device pixel ratio
+        this.canvas.width = displayWidth * pixelRatio;
+        this.canvas.height = displayHeight * pixelRatio;
+        
+        // Scale the canvas to display properly
+        this.canvas.style.width = displayWidth + 'px';
+        this.canvas.style.height = displayHeight + 'px';
+        
+        // Scale the context to match
+        this.ctx.scale(pixelRatio, pixelRatio);
+        
+        // Use better antialiasing and image rendering
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
+        
+        // Set up a resize handler if it doesn't already exist
+        if (!this._resizeHandlerAdded) {
+            window.addEventListener('resize', () => {
+                // Reset context transform before setting up again
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                this.setupCanvas();
+                
+                // Adjust game entities for the new canvas size
+                const isPortrait = window.innerHeight > window.innerWidth;
+                const isMobile = window.innerWidth < 768;
+                this.adjustEntitiesForResize(isPortrait, isMobile);
+            });
+            this._resizeHandlerAdded = true;
+        }
+        
+        console.log(`Canvas set up with pixel ratio: ${pixelRatio}, dimensions: ${this.canvas.width}x${this.canvas.height}`);
     }
     
     /**
@@ -200,10 +263,20 @@ class Game {
     start() {
         if (this.isRunning) return;
         
+        console.log('Starting game...');
+        
+        // Ensure canvas is at the correct resolution
+        this.setupCanvas();
+        
         this.isRunning = true;
         this.isGameOver = false;
-        this.lastTime = performance.now();
-        this.gameLoop();
+        this.lastTime = Date.now();
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+        
+        // Hide game over screen
+        if (this.gameOverElement) {
+            this.gameOverElement.style.display = 'none';
+        }
     }
     
     /**
@@ -321,28 +394,24 @@ class Game {
         if (!this.isRunning) return;
         
         // Calculate delta time
-        const deltaTime = currentTime - this.lastTime;
-        this.lastTime = currentTime;
+        const now = currentTime;
+        const deltaTime = now - this.lastTime;
+        this.lastTime = now;
         
-        // Don't allow massive delta time jumps (e.g. after tab switching)
-        const safeDeltaTime = Math.min(deltaTime, 50);
-        
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Update game
-        this.update(safeDeltaTime);
-        
-        // Render game
-        this.render();
-        
-        // Periodically log status for debugging
-        if (Math.random() < 0.001) { // ~0.1% chance each frame
-            Utils.checkGameStatus();
+        // Skip frames if too much time has passed (e.g., tab was inactive)
+        if (deltaTime > 100) {
+            this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+            return;
         }
         
+        // Update game state
+        this.update(deltaTime);
+        
+        // Render the game
+        this.render();
+        
         // Request next frame
-        this.animationFrameId = requestAnimationFrame(time => this.gameLoop(time));
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
     }
     
     /**
@@ -706,25 +775,28 @@ class Game {
      * Render the game
      */
     render() {
-        // Clear the canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // Clear canvas with a rectangle instead of clearRect for better performance
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw background
+        // Save the context state
+        this.ctx.save();
+        
+        // Draw the background and scene elements
         this.drawBackground();
         
-        // Draw platforms
+        // Draw entities with visibility checking
         this.platformManager.draw(this.ctx, this.camera.y);
-        
-        // Draw power-ups
         this.powerUpManager.draw(this.ctx, this.camera.y);
-        
-        // Draw enemies
         this.enemyManager.draw(this.ctx, this.camera.y);
         
-        // Draw player
+        // Draw the player
         this.player.draw(this.ctx, this.camera.y);
         
-        // Draw score
+        // Restore the context state
+        this.ctx.restore();
+        
+        // Draw the score
         this.drawScore(this.ctx);
         
         // Draw game over screen if game is over
