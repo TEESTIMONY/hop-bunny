@@ -25,6 +25,40 @@ function setViewportHeight() {
     } else {
         document.body.classList.remove('very-small-height');
     }
+    
+    // Handle tiny screens with different layout approach
+    if (window.innerHeight < 400) {
+        document.body.classList.add('tiny-screen');
+    } else {
+        document.body.classList.remove('tiny-screen');
+    }
+    
+    // Add a check specifically for the leaderboard button visibility
+    const leaderboardButton = document.getElementById('leaderboardButton');
+    if (leaderboardButton) {
+        // Force layout to horizontal buttons on smaller height screens
+        if (window.innerHeight < 550) {
+            const buttonContainer = document.querySelector('.button-container');
+            if (buttonContainer) {
+                buttonContainer.style.flexDirection = 'row';
+                buttonContainer.style.flexWrap = 'wrap';
+                buttonContainer.style.gap = '8px';
+            }
+            leaderboardButton.style.marginTop = '0';
+        }
+        
+        // Extra check for the smallest screens
+        if (window.innerHeight < 450) {
+            leaderboardButton.style.fontSize = '11px';
+            leaderboardButton.style.padding = '5px 10px';
+            
+            const startButton = document.getElementById('startButton');
+            if (startButton) {
+                startButton.style.fontSize = '11px';
+                startButton.style.padding = '5px 10px';
+            }
+        }
+    }
 }
 
 // Call the function initially
