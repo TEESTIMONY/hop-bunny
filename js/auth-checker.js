@@ -78,23 +78,37 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'auth.html';
     });
     
-    // Find the play button and create a buttons container
+    // Find the play and leaderboard buttons
     const startButton = document.getElementById('startButton');
-    if (startButton) {
-        // Create a button container that holds both buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.classList.add('button-container');
-        
-        // Replace the current play button with the container 
-        // and move the play button into it
-        if (startButton.parentNode) {
-            startButton.parentNode.insertBefore(buttonContainer, startButton);
-            buttonContainer.appendChild(startButton);
-            buttonContainer.appendChild(logoutButton);
+    const leaderboardButton = document.getElementById('leaderboardButton');
+    
+    if (startButton && leaderboardButton) {
+        // Get or create the button container
+        let buttonContainer = document.querySelector('.button-container');
+        if (!buttonContainer) {
+            buttonContainer = document.createElement('div');
+            buttonContainer.classList.add('button-container');
             
-            // Add some spacing between the buttons
-            startButton.style.marginBottom = '15px';
+            // Replace the current play button with the container
+            if (startButton.parentNode) {
+                startButton.parentNode.insertBefore(buttonContainer, startButton);
+            }
+        } else {
+            // Remove the leaderboard button from its current position
+            if (leaderboardButton.parentNode) {
+                leaderboardButton.parentNode.removeChild(leaderboardButton);
+            }
         }
+        
+        // Clear the button container and add the buttons in the desired order
+        buttonContainer.innerHTML = '';
+        buttonContainer.appendChild(startButton);
+        buttonContainer.appendChild(logoutButton);
+        buttonContainer.appendChild(leaderboardButton);
+        
+        // Add some spacing between buttons
+        startButton.style.marginBottom = '15px';
+        logoutButton.style.marginBottom = '5px';
     }
     
     // Display high score if available
