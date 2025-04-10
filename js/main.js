@@ -70,6 +70,7 @@ function setupStartScreen() {
     const startButton = document.getElementById('startButton');
     const startScreen = document.getElementById('startScreen');
     const restartButton = document.getElementById('restartButton');
+    const leaderboardButtonGameOver = document.getElementById('leaderboardButtonGameOver');
     const gameOverScreen = document.getElementById('gameOver');
     
     // Safe sound play function to avoid errors
@@ -148,9 +149,26 @@ function setupStartScreen() {
         }
     }
     
+    // Add event handlers for the leaderboard button in game over screen
+    function leaderboardGameOverHandler(e) {
+        console.log('Leaderboard button clicked');
+        e.preventDefault();
+        
+        // Remove active-touch class if it exists
+        leaderboardButtonGameOver.classList.remove('active-touch');
+        
+        // Navigate to leaderboard page
+        window.location.href = 'leaderboard.html';
+    }
+    
     // Remove any existing event listeners to avoid duplicate handlers
     restartButton.removeEventListener('click', restartGameHandler);
     restartButton.removeEventListener('touchend', restartGameHandler);
+    
+    if (leaderboardButtonGameOver) {
+        leaderboardButtonGameOver.removeEventListener('click', leaderboardGameOverHandler);
+        leaderboardButtonGameOver.removeEventListener('touchend', leaderboardGameOverHandler);
+    }
     
     // Add event listeners
     restartButton.addEventListener('click', restartGameHandler);
@@ -167,11 +185,30 @@ function setupStartScreen() {
         restartButton.classList.remove('active-touch');
     });
     
+    // Add event listeners for leaderboard button
+    if (leaderboardButtonGameOver) {
+        leaderboardButtonGameOver.addEventListener('click', leaderboardGameOverHandler);
+        leaderboardButtonGameOver.addEventListener('touchend', leaderboardGameOverHandler);
+        
+        leaderboardButtonGameOver.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            leaderboardButtonGameOver.classList.add('active-touch'); // Visual feedback
+            console.log('Leaderboard button touch start');
+        });
+        
+        // Handle touch cancel for leaderboard button
+        leaderboardButtonGameOver.addEventListener('touchcancel', () => {
+            leaderboardButtonGameOver.classList.remove('active-touch');
+        });
+    } else {
+        console.warn('Leaderboard button not found in the DOM');
+    }
+    
     // Set up high score display for game over screen
     setupHighScoreDisplay();
     
     // Log initialization for debugging
-    console.log('Start and restart buttons initialized with mobile support');
+    console.log('Start, restart, and leaderboard buttons initialized with mobile support');
 }
 
 // Set up high score display
@@ -256,12 +293,233 @@ function addDebugOverlay() {
 }
 
 // Wait for DOM to be fully loaded before initializing the game
-document.addEventListener('DOMContentLoaded', initGame);
-
-// Fallback if DOMContentLoaded doesn't trigger properly
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(initGame, 1000); // Give it a second to make sure everything is loaded
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM elements
+    const authScreen = document.getElementById('authScreen');
+    const startScreen = document.getElementById('startScreen'); 
+    const gameOver = document.getElementById('gameOver');
+    const startButton = document.getElementById('startButton');
+    const restartButton = document.getElementById('restartButton');
+    const finalScore = document.getElementById('finalScore');
+    const highScore = document.getElementById('highScore');
+    const gameCanvas = document.getElementById('gameCanvas');
+    
+    // Game state
+    let game = null;
+    let isGameStarted = false;
+    
+    // Initialize the flow
+    function init() {
+        // Check if the user is already authenticated (can be implemented later)
+        if (isUserAuthenticated()) {
+            // If authenticated, show the start screen
+            authScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        } else {
+            // If not authenticated, show the auth screen (already visible by default)
+        }
+        
+        // Add event listeners
+        setupEventListeners();
+    }
+    
+    // Setup all event listeners
+    function setupEventListeners() {
+        // Start button
+        startButton.addEventListener('click', startGame);
+        
+        // Restart button
+        restartButton.addEventListener('click', restartGame);
+        
+        // For touchscreen devices - use passive: false to prevent scrolling
+        gameCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        gameCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        gameCanvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+        
+        // For keyboard controls
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        
+        // For mouse controls
+        gameCanvas.addEventListener('mousedown', handleMouseDown);
+        gameCanvas.addEventListener('mousemove', handleMouseMove);
+        gameCanvas.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    // Start the game
+    function startGame() {
+        startScreen.classList.add('hidden');
+        isGameStarted = true;
+        
+        // Initialize the game
+        game = new Game(gameCanvas);
+        game.start();
+        
+        // Set up callback for game over
+        game.onGameOver = showGameOver;
+    }
+    
+    // Restart the game
+    function restartGame() {
+        gameOver.classList.add('hidden');
+        
+        // Reset game
+        if (game) {
+            game.reset();
+        } else {
+            game = new Game(gameCanvas);
+        }
+        
+        game.start();
+        isGameStarted = true;
+    }
+    
+    // Show game over screen
+    function showGameOver(score) {
+        isGameStarted = false;
+        gameOver.classList.remove('hidden');
+        
+        // Make sure the leaderboard button is visible and properly set up
+        const leaderboardButton = document.getElementById('leaderboardButtonGameOver');
+        if (leaderboardButton) {
+            leaderboardButton.style.display = 'flex';
+            leaderboardButton.style.opacity = '1';
+            leaderboardButton.style.visibility = 'visible';
+            
+            // Define leaderboard handler function in this scope
+            const handleLeaderboardClick = (e) => {
+                e.preventDefault();
+                console.log('Navigating to leaderboard from game over screen');
+                window.location.href = 'leaderboard.html';
+            };
+            
+            // Ensure it has the correct click handler
+            leaderboardButton.removeEventListener('click', handleLeaderboardClick);
+            leaderboardButton.removeEventListener('touchend', handleLeaderboardClick);
+            
+            leaderboardButton.addEventListener('click', handleLeaderboardClick);
+            leaderboardButton.addEventListener('touchend', handleLeaderboardClick);
+            
+            // Add visual feedback for touch
+            leaderboardButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                leaderboardButton.classList.add('active-touch');
+            });
+            
+            // Handle touch cancel
+            leaderboardButton.addEventListener('touchcancel', () => {
+                leaderboardButton.classList.remove('active-touch');
+            });
+        } else {
+            console.error('Leaderboard button not found in game over screen');
+        }
+        
+        // Update score display
+        finalScore.textContent = score;
+        
+        // Update high score
+        const currentHighScore = localStorage.getItem('highScore') || 0;
+        if (score > currentHighScore) {
+            localStorage.setItem('highScore', score);
+            highScore.textContent = score;
+        } else {
+            highScore.textContent = currentHighScore;
+        }
+    }
+    
+    // Input handlers
+    function handleTouchStart(e) {
+        if (isGameStarted && game) {
+            e.preventDefault(); // Prevent default behavior like scrolling
+            try {
+                game.handleTouchStart(e);
+            } catch (error) {
+                console.error('Error in handleTouchStart:', error);
+                // Fallback direct control if method fails
+                if (game.player && e.touches && e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    const rect = gameCanvas.getBoundingClientRect();
+                    const touchX = touch.clientX - rect.left;
+                    game.player.direction = touchX < rect.width / 2 ? -1 : 1;
+                }
+            }
+        }
+    }
+    
+    function handleTouchMove(e) {
+        if (isGameStarted && game) {
+            e.preventDefault(); // Prevent default behavior like scrolling
+            try {
+                game.handleTouchMove(e);
+            } catch (error) {
+                console.error('Error in handleTouchMove:', error);
+                // Fallback direct control if method fails
+                if (game.player && e.touches && e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    const rect = gameCanvas.getBoundingClientRect();
+                    const touchX = touch.clientX - rect.left;
+                    game.player.direction = touchX < rect.width / 2 ? -1 : 1;
+                }
+            }
+        }
+    }
+    
+    function handleTouchEnd(e) {
+        if (isGameStarted && game) {
+            e.preventDefault(); // Prevent default behavior
+            try {
+                game.handleTouchEnd(e);
+            } catch (error) {
+                console.error('Error in handleTouchEnd:', error);
+                // Fallback direct control if method fails
+                if (game.player) {
+                    game.player.direction = 0;
+                }
+            }
+        }
+    }
+    
+    function handleKeyDown(e) {
+        if (isGameStarted && game) {
+            game.handleKeyDown(e);
+        }
+    }
+    
+    function handleKeyUp(e) {
+        if (isGameStarted && game) {
+            game.handleKeyUp(e);
+        }
+    }
+    
+    function handleMouseDown(e) {
+        if (isGameStarted && game) {
+            game.handleMouseDown(e);
+        }
+    }
+    
+    function handleMouseMove(e) {
+        if (isGameStarted && game) {
+            game.handleMouseMove(e);
+        }
+    }
+    
+    function handleMouseUp(e) {
+        if (isGameStarted && game) {
+            game.handleMouseUp(e);
+        }
+    }
+    
+    // Helper function to check if user is authenticated
+    // This would connect to your backend once implemented
+    function isUserAuthenticated() {
+        // For now, just check localStorage
+        // Later this would check with your backend
+        return localStorage.getItem('userToken') ? true : false;
+    }
+    
+    // Initialize the game flow
+    init();
+});
 
 /**
  * Add touch controls for mobile devices
@@ -273,38 +531,29 @@ function addTouchControls(game) {
     // Touch event handlers
     gameContainer.addEventListener('touchstart', (e) => {
         e.preventDefault(); // Prevent scrolling
-        handleTouch(e, game);
-    });
+        if (game && typeof game.handleTouchStart === 'function') {
+            game.handleTouchStart(e);
+        }
+    }, { passive: false });
     
     gameContainer.addEventListener('touchmove', (e) => {
         e.preventDefault(); // Prevent scrolling
-        handleTouch(e, game);
-    });
-    
-    // Helper function to handle touch input
-    function handleTouch(e, game) {
-        const touch = e.touches[0];
-        const containerRect = gameContainer.getBoundingClientRect();
-        const touchX = touch.clientX - containerRect.left;
-        
-        // Determine left or right based on touch position
-        const centerX = containerRect.width / 2;
-        
-        if (touchX < centerX) {
-            // Left side touched
-            game.player.direction = -1;
-        } else {
-            // Right side touched
-            game.player.direction = 1;
+        if (game && typeof game.handleTouchMove === 'function') {
+            game.handleTouchMove(e);
         }
-    }
+    }, { passive: false });
     
-    // Stop movement when touch ends
-    gameContainer.addEventListener('touchend', () => {
-        game.player.direction = 0;
-    });
+    gameContainer.addEventListener('touchend', (e) => {
+        e.preventDefault(); // Prevent scrolling
+        if (game && typeof game.handleTouchEnd === 'function') {
+            game.handleTouchEnd(e);
+        }
+    }, { passive: false });
     
-    gameContainer.addEventListener('touchcancel', () => {
-        game.player.direction = 0;
-    });
+    gameContainer.addEventListener('touchcancel', (e) => {
+        e.preventDefault(); // Prevent scrolling
+        if (game && typeof game.handleTouchEnd === 'function') {
+            game.handleTouchEnd(e);
+        }
+    }, { passive: false });
 } 

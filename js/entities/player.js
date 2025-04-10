@@ -83,8 +83,11 @@ class Player {
             }
         });
         
-        // Mobile device tilt controls
-        if (window.DeviceOrientationEvent) {
+        // Disable device orientation controls as they can interfere with touch controls
+        // Enable only on desktop for a better experience
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (!isMobile && window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', (e) => {
                 if (e.gamma) {
                     // Convert gamma rotation to direction (-90 to 90)

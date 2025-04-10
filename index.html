@@ -22,6 +22,7 @@
         
         <!-- <div id="score">0</div> -->
         
+        <!-- Start screen - shown after authentication -->
         <div id="startScreen" class="overlay">
             <div class="particles-container">
                 <div class="particle"></div>
@@ -54,8 +55,12 @@
                 <i class="fas fa-play"></i> PLAY
             </button>
             
+            <button id="leaderboardButton" class="game-button secondary-button" onclick="window.location.href='leaderboard.html'" ontouchstart="">
+                <i class="fas fa-trophy"></i> LEADERBOARD
+            </button>
+            
             <div class="footer-text">
-                <p class="version">v3.0 Developed by Delo✔️</p>
+                <p class="version">v1.0</p>
             </div>
         </div>
         
@@ -81,18 +86,17 @@
                 </div>
             </div>
             
-            <button id="restartButton" class="game-button" ontouchstart="">
-                <i class="fas fa-redo-alt"></i> TRY AGAIN
-            </button>
+            <div class="game-over-buttons">
+                <button id="restartButton" class="game-button" ontouchstart="">
+                    <i class="fas fa-redo-alt"></i> TRY AGAIN
+                </button>
+                
+                <button id="leaderboardButtonGameOver" class="game-button secondary-button" onclick="window.location.href='leaderboard.html'" ontouchstart="">
+                    <i class="fas fa-trophy"></i> LEADERBOARD
+                </button>
+            </div>
         </div>
         
-        <!-- <div id="pauseButton" class="control-button">
-            <i class="fas fa-pause"></i>
-        </div> -->
-        
-        <!-- <div id="audioButton" class="control-button">
-            <i class="fas fa-volume-up"></i>
-        </div> -->
     </div>
 
     <!-- Game scripts -->
@@ -103,5 +107,6 @@
     <script src="js/entities/powerup.js"></script>
     <script src="js/game.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/auth-checker.js"></script>
 </body>
 </html> 

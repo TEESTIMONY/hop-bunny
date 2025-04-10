@@ -21,7 +21,12 @@ class Game {
         this.isRunning = false;
         this.isGameOver = false;
         this.score = 0;
+        
+        // Initialize high score from localStorage, but will be updated from server if user is logged in
         this.highScore = parseInt(localStorage.getItem('highScore')) || 0;
+        
+        // Fetch user's high score from backend if they're logged in
+        this.fetchUserHighScore();
         
         // Difficulty system
         this.difficulty = 1;
@@ -221,10 +226,15 @@ class Game {
         this.isGameOver = true;
         this.stop();
         
-        // Update high score
+        // Send the current game score to the backend
+        this.sendGameScoreToServer(this.score);
+        
+        // We'll update the local high score display only if this run's score is higher
+        // than the previously displayed high score
         if (this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('highScore', this.highScore);
+            console.log('Display high score updated:', this.highScore);
         }
         
         // Function to handle both clicks and touches
@@ -282,6 +292,141 @@ class Game {
         
         // Draw the game over screen immediately
         this.render();
+    }
+    
+    /**
+     * Send current game score to backend
+     * @param {number} score - The current game score to send
+     *
+     */
+
+    sendGameScoreToServer(score) {
+        // Get user data from local storage or session storage
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        
+        // If no token or userId, user is not authenticated - don't send score
+        if (!token || !userId) {
+            console.warn('Cannot send score: User not authenticated');
+            return;
+        }
+        
+        // Log the score being sent
+        console.log('Sending game score to server:', score);
+        
+        // Send current game score to backend
+        console.log('this', score);
+
+        try {
+            // Use the API endpoint
+            fetch('https://hop-bunny-backend-v2.vercel.app/api/update-score', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    score: score // Current score from this game session
+                })
+            })
+            .then(response => {
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => {
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Failed to send score');
+                        }
+                        return data;
+                    });
+                } else {
+                    // Handle non-JSON response
+                    return response.text().then(text => {
+                        console.error('Server returned non-JSON response:', text.substring(0, 100) + '...');
+                        throw new Error('Server returned an invalid response format');
+                    });
+                }
+            })
+            .then(data => {
+                console.log('Score sent successfully:', data);
+                
+                // If the server sends back a highScore property, we can use it to update
+                // the local display, but this is just for display purposes
+                if (data && data.highScore !== undefined) {
+                    this.highScore = parseInt(data.highScore);
+                    localStorage.setItem('highScore', this.highScore);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending score:', error);
+            });
+        } catch (error) {
+            console.error('Error connecting to server:', error);
+        }
+    }
+    
+    /**
+     * Fetch user's high score from backend
+     */
+    fetchUserHighScore() {
+        // Get authentication details
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        
+        // If no token or userId, user is not authenticated - use localStorage score
+        if (!token || !userId) {
+            console.log('User not authenticated, using local high score');
+            return;
+        }
+        
+        // Fetch high score from backend
+        try {
+            // Use the correct API endpoint with the v2 subdomain
+            fetch(`https://hop-bunny-backend-v2.vercel.app/api/user/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json().then(data => {
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Failed to fetch user data');
+                        }
+                        return data;
+                    });
+                } else {
+                    // Handle non-JSON response
+                    return response.text().then(text => {
+                        console.error('Server returned non-JSON response:', text.substring(0, 100) + '...');
+                        throw new Error('Server returned an invalid response format');
+                    });
+                }
+            })
+            .then(data => {
+                console.log('User data fetched:', data);
+                
+                // Update high score from server (which should be the cumulative total)
+                if (data.highScore && !isNaN(data.highScore)) {
+                    const serverHighScore = parseInt(data.highScore);
+                    console.log('Received cumulative high score from server:', serverHighScore);
+                    
+                    // Set the high score to the server value
+                    this.highScore = serverHighScore;
+                    localStorage.setItem('highScore', this.highScore);
+                    console.log('Local high score updated to match server:', this.highScore);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+        } catch (error) {
+            console.error('Error connecting to server:', error);
+        }
     }
     
     /**
@@ -1424,5 +1569,71 @@ class Game {
         this.ctx.fillText('Click the pause button to resume', this.canvas.width / 2, this.canvas.height / 2 + 30);
         
         this.ctx.restore();
+    }
+    
+    /**
+     * Handle touch start events
+     * @param {TouchEvent} e - The touch event
+     */
+    handleTouchStart(e) {
+        if (!this.isRunning || this.isGameOver) return;
+        
+        // Ensure we have touch data
+        if (!e.touches || e.touches.length === 0) return;
+        
+        const touch = e.touches[0];
+        const containerRect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - containerRect.left;
+        
+        // Determine left or right based on touch position
+        const centerX = containerRect.width / 2;
+        
+        if (touchX < centerX) {
+            // Left side touched
+            this.player.direction = -1;
+            console.log('Touch left: Moving player left');
+        } else {
+            // Right side touched
+            this.player.direction = 1;
+            console.log('Touch right: Moving player right');
+        }
+    }
+    
+    /**
+     * Handle touch move events
+     * @param {TouchEvent} e - The touch event
+     */
+    handleTouchMove(e) {
+        if (!this.isRunning || this.isGameOver) return;
+        
+        // Ensure we have touch data
+        if (!e.touches || e.touches.length === 0) return;
+        
+        const touch = e.touches[0];
+        const containerRect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - containerRect.left;
+        
+        // Determine left or right based on touch position
+        const centerX = containerRect.width / 2;
+        
+        if (touchX < centerX) {
+            // Left side touched
+            this.player.direction = -1;
+        } else {
+            // Right side touched
+            this.player.direction = 1;
+        }
+    }
+    
+    /**
+     * Handle touch end events
+     * @param {TouchEvent} e - The touch event
+     */
+    handleTouchEnd(e) {
+        if (!this.isRunning || this.isGameOver) return;
+        
+        // Stop player movement
+        this.player.direction = 0;
+        console.log('Touch ended: Stopping player movement');
     }
 }

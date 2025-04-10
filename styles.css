@@ -53,7 +53,8 @@ body {
 .game-container {
     position: relative;
     width: 400px;
-    height: 900px;
+    height: 100vh; /* Full viewport height */
+    max-height: 100vh;
     border: none;
     border-radius: 25px;
     overflow: hidden;
@@ -67,16 +68,11 @@ body {
     --outline-size: 1px;
     --outline-color: rgba(255, 255, 255, 0.1);
     outline: var(--outline-size) solid var(--outline-color);
-    position: relative;
     
     /* Responsive sizing */
     max-width: 95vw;
-    max-height: 90vh;
     
-    /* Maintain aspect ratio while resizing */
-    aspect-ratio: 400/650;
-    
-    /* Apply subtle animation */
+    /* Animation */
     animation: container-float 6s ease-in-out infinite;
 }
 
@@ -160,11 +156,11 @@ body {
     background: linear-gradient(135deg, rgba(135, 206, 235, 0.8), rgba(57, 84, 123, 0.9));
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     color: var(--ui-light);
     z-index: 10;
-    padding: 30px;
+    padding: 30px 20px;
     box-sizing: border-box;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -172,9 +168,9 @@ body {
 
 /* Start screen with modern styling */
 #game-character {
-    width: 180px;
+    width: 160px;
     height: auto;
-    margin: 0 auto 15px auto;
+    margin: 15px auto;
     display: block;
     animation: character-bounce 3s ease-in-out infinite;
     filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
@@ -193,12 +189,12 @@ body {
 
 .game-title {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     position: relative;
 }
 
 .game-title h1 {
-    font-size: 58px;
+    font-size: 48px;
     line-height: 0.9;
     font-weight: 800;
     color: var(--ui-light);
@@ -377,6 +373,33 @@ body {
     z-index: 1;
 }
 
+/* Logout button as a game button */
+.logout-game-button {
+    background: linear-gradient(to bottom, #3498db, #2980b9);
+    box-shadow: 
+        0 6px 0 #1a5276,
+        0 10px 25px rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+    padding: 14px 28px;
+    margin-top: 15px;
+    width: auto; /* Allow button to size properly */
+    min-width: 200px; /* Ensure minimum width */
+}
+
+.logout-game-button:hover {
+    background: linear-gradient(to bottom, #2980b9, #3498db);
+    box-shadow: 
+        0 9px 0 #1a5276,
+        0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.logout-game-button:active {
+    transform: translateY(3px);
+    box-shadow: 
+        0 3px 0 #1a5276,
+        0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
 .game-button::before {
     content: '';
     position: absolute;
@@ -458,18 +481,23 @@ body {
     font-size: 11px;
 }
 
-/* Responsive adjustments with improved layouts */
+/* Mobile Responsive adjustments */
 @media (max-width: 430px) {
     .game-container {
         width: 100vw;
         max-width: 100vw;
-        height: 100vh; /* Fallback */
-        height: calc(var(--vh, 1vh) * 100);
+        height: 100vh;
         max-height: 100vh;
-        max-height: calc(var(--vh, 1vh) * 100);
         border-radius: 0;
-        aspect-ratio: auto;
+        aspect-ratio: unset;
         animation: none;
+        box-shadow: none;
+    }
+    
+    body {
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
     }
     
     .game-title h1 {
@@ -488,18 +516,8 @@ body {
         height: auto;
     }
     
-    .game-button {
-        padding: 14px 30px;
-        font-size: 18px;
-    }
-    
-    .score-display {
-        padding: 20px 25px;
-        min-width: 90%;
-    }
-    
-    #gameOver h2 {
-        font-size: 44px;
+    .button-container {
+        margin-top: 20px;
     }
 }
 
@@ -507,56 +525,72 @@ body {
 @media (max-width: 430px) and (max-height: 900px) and (orientation: portrait) {
     .game-container {
         width: 100vw;
-        height: 100vh; /* Fallback */
-        height: calc(var(--vh, 1vh) * 100);
-        border-radius: 0;
-        max-width: 100vw;
+        height: 100vh;
         max-height: 100vh;
-        max-height: calc(var(--vh, 1vh) * 100);
+        border-radius: 0;
     }
     
-    body {
-        padding: 0;
-        margin: 0;
+    html, body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        position: fixed;
     }
     
-    #game-character {
-        width: 150px;
-        height: auto;
+    .button-container {
+        position: relative;
+        bottom: 0;
+        margin-top: auto;
+        margin-bottom: 30px;
+    }
+    
+    .overlay {
+        justify-content: space-between;
     }
 }
 
 /* Landscape orientation for mobile */
 @media (max-height: 500px) and (orientation: landscape) {
     .game-container {
-        height: 100vh; /* Fallback */
-        height: calc(var(--vh, 1vh) * 100);
-        width: auto;
-        aspect-ratio: auto;
+        height: 100vh;
+        width: 100vw;
+        max-width: 100vw;
         max-height: 100vh;
-        max-height: calc(var(--vh, 1vh) * 100);
         border-radius: 0;
     }
     
-    #game-character {
-        width: 80px;
-        height: auto;
-        margin-bottom: 10px;
+    .overlay {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px;
     }
     
-    .game-title h1 {
-        font-size: 36px;
+    .game-title {
+        width: 50%;
+        text-align: left;
+        margin-bottom: 0;
     }
     
     .game-description {
-        font-size: 12px;
-        margin-bottom: 15px;
-        padding: 10px 15px;
+        width: 50%;
+        margin-bottom: 0;
     }
     
-    .game-button {
-        padding: 10px 25px;
-        font-size: 16px;
+    .button-container {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 10px;
+    }
+    
+    #game-character {
+        width: 70px;
+        height: auto;
+        margin: 0;
+        position: absolute;
+        left: 20px;
+        bottom: 20px;
     }
 }
 
@@ -583,7 +617,7 @@ body {
     }
 }
 
-/* Very small screens */
+/* Very small screens adjustment */
 @media (max-height: 600px) {
     .game-container {
         max-height: 95vh;
@@ -608,6 +642,13 @@ body {
     .game-button {
         padding: 10px 25px;
         font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .logout-game-button {
+        padding: 8px 20px;
+        font-size: 14px;
+        margin-top: 10px;
     }
     
     #gameOver h2 {
@@ -651,81 +692,61 @@ body {
 }
 
 .particle:nth-child(1) {
-    top: 20%;
-    left: 10%;
-    width: 12px;
-    height: 12px;
-    animation-duration: 25s;
-    animation-delay: 0s;
+    top: 10%;
+    left: 20%;
+    width: 25px;
+    height: 25px;
+    filter: blur(2px);
+    background: rgba(57, 84, 123, 0.3);
 }
 
 .particle:nth-child(2) {
-    top: 60%;
+    top: 30%;
     left: 80%;
-    width: 10px;
-    height: 10px;
-    animation-duration: 20s;
-    animation-delay: 1s;
+    width: 15px;
+    height: 15px;
+    filter: blur(1px);
+    background: rgba(75, 83, 32, 0.4);
 }
 
 .particle:nth-child(3) {
-    top: 40%;
-    left: 30%;
-    width: 14px;
-    height: 14px;
-    animation-duration: 22s;
-    animation-delay: 2s;
+    top: 60%;
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    filter: blur(2px);
+    background: rgba(113, 167, 68, 0.35);
 }
 
 .particle:nth-child(4) {
     top: 70%;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-    animation-duration: 18s;
-    animation-delay: 3s;
+    left: 70%;
+    width: 18px;
+    height: 18px;
+    filter: blur(1.5px);
+    background: rgba(57, 84, 123, 0.3);
 }
 
 .particle:nth-child(5) {
-    top: 10%;
-    left: 70%;
-    width: 12px;
-    height: 12px;
-    animation-duration: 24s;
-    animation-delay: 4s;
+    top: 40%;
+    left: 40%;
+    width: 30px;
+    height: 30px;
+    filter: blur(3px);
+    background: rgba(75, 83, 32, 0.25);
 }
 
 .particle:nth-child(6) {
-    top: 50%;
-    left: 20%;
-    width: 8px;
-    height: 8px;
-    animation-duration: 19s;
-    animation-delay: 5s;
-}
-
-.particle:nth-child(7) {
-    top: 30%;
-    left: 90%;
-    width: 14px;
-    height: 14px;
-    animation-duration: 21s;
-    animation-delay: 6s;
-}
-
-.particle:nth-child(8) {
     top: 80%;
-    left: 40%;
-    width: 10px;
-    height: 10px;
-    animation-duration: 23s;
-    animation-delay: 7s;
+    left: 30%;
+    width: 22px;
+    height: 22px;
+    filter: blur(2px);
+    background: rgba(113, 167, 68, 0.3);
 }
 
-.game-over-particles .particle.red {
-    background: rgba(231, 76, 60, 0.6);
-    box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
-    animation: float-game-over 8s infinite linear;
+.particle.red {
+    background: rgba(139, 58, 58, 0.4);
 }
 
 @keyframes float {
@@ -872,4 +893,750 @@ body {
 
 .score-value.new-record {
     animation: score-pulse 0.5s 3 ease-in-out;
+}
+
+/* Authentication Screen Styles */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+    width: 80%;
+    max-width: 320px;
+}
+
+.auth-tab-button {
+    flex: 1;
+    padding: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--ui-light);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.auth-tab-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.auth-tab-button.active {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    font-weight: 600;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 80%;
+    max-width: 320px;
+    margin-bottom: 20px;
+}
+
+.auth-form.hidden {
+    display: none;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 18px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px 15px 15px 45px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    color: white;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 16px;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 14px;
+    margin: -5px 0 5px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.remember-me input {
+    cursor: pointer;
+}
+
+.forgot-password {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.social-login {
+    margin-top: 15px;
+    text-align: center;
+    width: 80%;
+    max-width: 320px;
+}
+
+.social-login p {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    position: relative;
+}
+
+.social-login p:before,
+.social-login p:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 25%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.social-login p:before {
+    left: 0;
+}
+
+.social-login p:after {
+    right: 0;
+}
+
+.social-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--glass-shadow);
+}
+
+.social-button i {
+    font-size: 20px;
+    color: white;
+}
+
+.social-button.google {
+    background: rgba(234, 67, 53, 0.2);
+}
+
+.social-button.facebook {
+    background: rgba(66, 103, 178, 0.2);
+}
+
+.social-button.apple {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.social-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.social-button.google:hover {
+    background: rgba(234, 67, 53, 0.3);
+}
+
+.social-button.facebook:hover {
+    background: rgba(66, 103, 178, 0.3);
+}
+
+.social-button.apple:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Particle animations for auth screen */
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    animation: float 20s linear infinite;
+    opacity: 0.3;
+}
+
+.particle:nth-child(1) {
+    top: 10%;
+    left: 20%;
+    width: 25px;
+    height: 25px;
+    filter: blur(2px);
+    background: rgba(57, 84, 123, 0.3);
+}
+
+.particle:nth-child(2) {
+    top: 30%;
+    left: 80%;
+    width: 15px;
+    height: 15px;
+    filter: blur(1px);
+    background: rgba(75, 83, 32, 0.4);
+}
+
+.particle:nth-child(3) {
+    top: 60%;
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    filter: blur(2px);
+    background: rgba(113, 167, 68, 0.35);
+}
+
+.particle:nth-child(4) {
+    top: 70%;
+    left: 70%;
+    width: 18px;
+    height: 18px;
+    filter: blur(1.5px);
+    background: rgba(57, 84, 123, 0.3);
+}
+
+.particle:nth-child(5) {
+    top: 40%;
+    left: 40%;
+    width: 30px;
+    height: 30px;
+    filter: blur(3px);
+    background: rgba(75, 83, 32, 0.25);
+}
+
+.particle:nth-child(6) {
+    top: 80%;
+    left: 30%;
+    width: 22px;
+    height: 22px;
+    filter: blur(2px);
+    background: rgba(113, 167, 68, 0.3);
+}
+
+.particle.red {
+    background: rgba(139, 58, 58, 0.4);
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translateY(-100px) translateX(50px) rotate(90deg);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-200px) translateX(-50px) rotate(180deg);
+        opacity: 0.3;
+    }
+    75% {
+        transform: translateY(-300px) translateX(100px) rotate(270deg);
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-400px) translateX(0) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Error message styling */
+.error-message {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(231, 76, 60, 0.9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    animation: slide-in 0.3s ease-out forwards;
+    max-width: 80%;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-message i {
+    font-size: 18px;
+}
+
+.error-message.fade-out {
+    animation: fade-out 0.5s ease-out forwards;
+}
+
+@keyframes slide-in {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+}
+
+/* Auth container - for the separated auth.html page */
+.auth-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1a1a1a;
+}
+
+.auth-container .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Error message styling */
+.error-message {
+    background-color: rgba(255, 69, 58, 0.9);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    width: 100%;
+    text-align: center;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% {
+        transform: translateX(-1px);
+    }
+    20%, 80% {
+        transform: translateX(2px);
+    }
+    30%, 50%, 70% {
+        transform: translateX(-4px);
+    }
+    40%, 60% {
+        transform: translateX(4px);
+    }
+}
+
+/* Logout button styling */
+.logout-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: var(--ui-accent);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    outline: none;
+}
+
+.logout-button:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Username display */
+.username-display {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    color: #fff;
+    border-radius: 50px;
+    padding: 8px 15px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--glass-border);
+    animation: slide-in-left 0.5s ease-out forwards;
+    z-index: 20;
+}
+
+/* Username in top right corner */
+.username-display.top-right {
+    top: 15px;
+    right: 15px;
+    left: auto;
+    bottom: auto;
+    animation: slide-in-right 0.5s ease-out forwards;
+}
+
+.username-display i {
+    color: var(--ui-info);
+}
+
+@keyframes slide-in-left {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-right {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Make sure username and logout button don't overlap on small screens */
+@media (max-width: 350px) {
+    .username-display:not(.top-right) {
+        bottom: 40px;
+    }
+}
+
+/* Button container for start and logout buttons */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 20px auto;
+}
+
+/* Responsive button adjustments */
+@media (max-width: 430px) {
+    .button-container {
+        max-width: 250px;
+    }
+    
+    .game-button {
+        padding: 14px 30px;
+        font-size: 16px;
+        width: 100%;
+        max-width: 250px;
+        margin-bottom: 0;
+    }
+    
+    .logout-game-button {
+        padding: 12px 25px;
+        font-size: 14px;
+        width: 100%;
+        max-width: 220px;
+        margin-top: 0;
+    }
+    
+    .game-description {
+        font-size: 14px;
+        line-height: 1.4;
+        padding: 15px;
+    }
+}
+
+/* Very small screens */
+@media (max-height: 600px) {
+    .button-container {
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .game-button {
+        padding: 10px 25px;
+        font-size: 16px;
+        margin-bottom: 0;
+    }
+    
+    .logout-game-button {
+        padding: 8px 20px;
+        font-size: 14px;
+        margin-top: 0;
+    }
+}
+
+/* Extra small devices (portrait phones) */
+@media (max-width: 350px) {
+    .button-container {
+        gap: 10px;
+    }
+    
+    .game-button, .logout-game-button {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+}
+
+/* iPhone SE and similar small screens specific adjustments */
+@media screen and (max-width: 375px) and (max-height: 667px) {
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        padding: 0;
+    }
+    
+    #game-character {
+        width: 120px;
+        margin: 10px auto;
+    }
+    
+    .game-title h1 {
+        font-size: 40px;
+    }
+    
+    .game-description {
+        font-size: 13px;
+        margin-bottom: 15px;
+        max-width: 100%;
+        padding: 12px 15px;
+    }
+    
+    .description-icons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .icon-item {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+    
+    .button-container {
+        gap: 12px;
+        margin-bottom: 15px;
+        max-width: 240px;
+    }
+    
+    .game-button {
+        padding: 12px 25px;
+        font-size: 16px;
+    }
+    
+    .logout-game-button {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .overlay {
+        padding: 15px 10px;
+        justify-content: space-between;
+    }
+    
+    .username-display.top-right {
+        top: 10px;
+        right: 10px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .footer-text {
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+    }
+    
+    .version {
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+}
+
+/* Secondary button style */
+.game-button.secondary-button {
+    background: var(--ui-secondary);
+    margin-top: 15px;
+    box-shadow: 0 10px 20px rgba(52, 73, 94, 0.4), inset 0 -5px 0 rgba(0, 0, 0, 0.2);
+}
+
+.game-button.secondary-button:hover {
+    background: #3d5674;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px rgba(52, 73, 94, 0.5), inset 0 -5px 0 rgba(0, 0, 0, 0.3);
+}
+
+.game-button.secondary-button:active,
+.game-button.secondary-button.active-touch {
+    transform: translateY(0);
+    box-shadow: 0 5px 15px rgba(52, 73, 94, 0.4), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.game-button.secondary-button::before {
+    background: linear-gradient(to right, #34495e, #2c3e50);
+}
+
+/* Game over buttons container */
+.game-over-buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 250px;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.game-over-buttons .game-button {
+    margin-top: 0;
+    opacity: 1;
+    visibility: visible;
+}
+
+.game-over-buttons .game-button.secondary-button {
+    background: linear-gradient(to bottom, #3498db, #2980b9);
+    box-shadow: 0 4px 0 #1c6ea4, 0 6px 10px rgba(52, 152, 219, 0.3);
+}
+
+.game-over-buttons .game-button.secondary-button:hover {
+    background: linear-gradient(to bottom, #4dabf7, #3498db);
+    box-shadow: 0 8px 0 #1c6ea4, 0 12px 20px rgba(52, 152, 219, 0.4);
+}
+
+.game-over-buttons .game-button.secondary-button:active,
+.game-over-buttons .game-button.secondary-button.active-touch {
+    transform: translateY(2px);
+    background: linear-gradient(to bottom, #3498db, #2980b9);
+    box-shadow: 0 2px 0 #1c6ea4, 0 4px 5px rgba(52, 152, 219, 0.3);
+    transition: all 0.1s ease;
+}
+
+@media (max-width: 430px) {
+    .game-over-buttons {
+        max-width: 220px;
+    }
+    
+    .game-over-buttons .game-button {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+}
+
+@media (max-height: 600px) {
+    .game-over-buttons {
+        gap: 10px;
+    }
+    
+    .game-over-buttons .game-button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
 } 
