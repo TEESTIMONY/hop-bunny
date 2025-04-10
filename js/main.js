@@ -12,6 +12,29 @@ function fixViewportHeight() {
     document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
 
+// Function to handle viewport height for small screens
+function setViewportHeight() {
+    // First, get the viewport height and multiply it by 1% to get a value for a vh unit
+    let vh = window.innerHeight * 0.01;
+    // Then set the value in the --vh custom property to the root of the document
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    
+    // Handle extremely small heights by adding a class to the body
+    if (window.innerHeight < 500) {
+        document.body.classList.add('very-small-height');
+    } else {
+        document.body.classList.remove('very-small-height');
+    }
+}
+
+// Call the function initially
+setViewportHeight();
+
+// Add event listener to recalculate on resize
+window.addEventListener('resize', () => {
+    setViewportHeight();
+});
+
 // Make sure the game initializes properly
 function initGame() {
     try {
