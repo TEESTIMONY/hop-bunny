@@ -221,8 +221,9 @@ body {
     margin-top: 20px;
     width: 100%;
     max-width: 250px;
-    /* Add safe bottom padding for all devices */
-    padding-bottom: 15px;
+    /* Add bottom spacing for all browsers */
+    padding-bottom: 70px;
+    margin-bottom: 30px;
 }
 
 /* Additional Safari-specific fix for buttons */
@@ -230,7 +231,7 @@ body {
     .leaderboard-buttons {
         /* Increase bottom margin specifically for Safari to avoid cut-off */
         margin-bottom: 35px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom, 25px));
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 25px));
     }
     
     /* Ensure footer text is visible above Safari nav bar */

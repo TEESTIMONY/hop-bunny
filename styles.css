@@ -92,8 +92,8 @@ body {
     
     /* Fix button placement at bottom of screen */
     .button-container {
-        padding-bottom: calc(15px + var(--safe-area-inset-bottom));
-        margin-bottom: 5px;
+        padding-bottom: calc(70px + var(--safe-area-inset-bottom));
+        margin-bottom: 20px;
     }
     
     /* Adjust overlay screens for Safari */
@@ -105,6 +105,7 @@ body {
     /* Fix for auth form buttons in Safari */
     .auth-form {
         margin-bottom: calc(15px + var(--safe-area-inset-bottom));
+        padding-bottom: 55px;
     }
     
     .auth-form .game-button {
@@ -420,20 +421,19 @@ body {
 
 .footer-text {
     position: absolute;
-    bottom: 15px;
+    bottom: 25px;
     right: 15px;
-    text-align: center;
-    font-size: 14px;
-    opacity: 0.9;
-    letter-spacing: 1px;
-    color: var(--ui-light);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    text-align: right;
+    z-index: 3;
+    padding: 5px 0;
+    pointer-events: none;
 }
 
 .footer-text:hover {
-    opacity: 1;
-    transform: translateY(-2px);
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 .version {
@@ -1119,11 +1119,14 @@ body {
 }
 
 .auth-form {
+    width: 100%;
+    max-width: 300px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 80%;
-    max-width: 320px;
+    margin-top: 20px;
+    /* Add bottom padding to prevent overlap with browser UI */
+    padding-bottom: 70px;
     margin-bottom: 20px;
 }
 
@@ -1602,12 +1605,14 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 15px;
     justify-content: center;
-    gap: 5px;
     width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
-    padding-bottom: 40px;
+    max-width: 100%;
+    margin-top: 15px;
+    /* Add bottom padding for all browsers */
+    padding-bottom: 70px;
+    margin-bottom: 20px;
 }
 
 /* Responsive button adjustments */
@@ -1848,10 +1853,11 @@ body.tiny-screen .footer-text {
     align-items: center;
     color: var(--ui-light);
     z-index: 10;
-    padding: 20px 20px 30px;
+    padding: 20px 20px 80px; /* Increased bottom padding to avoid browser UI overlap */
     box-sizing: border-box;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    overflow-y: auto; /* Allow scrolling if content is too tall */
 }
 
 /* Start screen with modern styling */
@@ -1938,6 +1944,9 @@ body.tiny-screen .footer-text {
     max-width: 250px;
     gap: 15px;
     margin-top: 10px;
+    /* Add bottom padding to avoid browser navigation overlap */
+    padding-bottom: 60px;
+    margin-bottom: 20px;
 }
 
 .game-over-buttons .game-button {
