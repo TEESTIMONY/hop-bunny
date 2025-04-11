@@ -24,6 +24,10 @@
     --glass-border: rgba(255, 255, 255, 0.18);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     --glass-blur: 10px;
+    
+    /* Safari viewport insets */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 15px);
 }
 
 /* Apply modern font and base styles */
@@ -74,6 +78,44 @@ body {
     
     /* Animation */
     animation: container-float 6s ease-in-out infinite;
+}
+
+/* Safari-specific fixes for viewport issues */
+@supports (-webkit-touch-callout: none) {
+    .game-container {
+        /* iOS-specific height fix */
+        height: -webkit-fill-available;
+        /* Add safe area padding */
+        padding-top: var(--safe-area-inset-top);
+        padding-bottom: var(--safe-area-inset-bottom);
+    }
+    
+    /* Fix button placement at bottom of screen */
+    .button-container {
+        padding-bottom: calc(15px + var(--safe-area-inset-bottom));
+        margin-bottom: 5px;
+    }
+    
+    /* Adjust overlay screens for Safari */
+    .overlay {
+        padding-top: calc(20px + var(--safe-area-inset-top));
+        padding-bottom: calc(30px + var(--safe-area-inset-bottom));
+    }
+    
+    /* Fix for auth form buttons in Safari */
+    .auth-form {
+        margin-bottom: calc(15px + var(--safe-area-inset-bottom));
+    }
+    
+    .auth-form .game-button {
+        margin-bottom: calc(10px + var(--safe-area-inset-bottom));
+    }
+    
+    /* Fix for footer text in Safari */
+    .footer-text {
+        margin-bottom: calc(5px + var(--safe-area-inset-bottom));
+        padding-bottom: 10px;
+    }
 }
 
 @keyframes container-float {

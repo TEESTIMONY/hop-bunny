@@ -28,6 +28,21 @@ body {
     /* iOS-specific fix to ensure proper height */
     .leaderboard-container {
         height: -webkit-fill-available;
+        /* Add padding for Safari navigation bar at bottom */
+        padding-bottom: env(safe-area-inset-bottom, 15px);
+        /* Add padding for Safari search bar at top */
+        padding-top: env(safe-area-inset-top, 15px);
+    }
+    
+    /* Adjust buttons container for Safari */
+    .leaderboard-buttons {
+        padding-bottom: env(safe-area-inset-bottom, 15px);
+        margin-bottom: 20px;
+    }
+    
+    /* Add extra bottom padding to ensure buttons aren't cut off */
+    .leaderboard-content {
+        padding-bottom: env(safe-area-inset-bottom, 35px);
     }
 }
 
@@ -42,6 +57,8 @@ body {
     box-sizing: border-box;
     position: relative;
     z-index: 2;
+    /* Add bottom padding for all browsers */
+    padding-bottom: 20px;
 }
 
 /* Game title styling with 3D effect */
@@ -200,13 +217,28 @@ body {
 .leaderboard-buttons {
     display: flex;
     flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
     width: 100%;
-    gap: 10px;
-    margin-top: auto;
-    margin-bottom: 20px;
-    max-width: 280px;
-    position: relative;
-    z-index: 10;
+    max-width: 250px;
+    /* Add safe bottom padding for all devices */
+    padding-bottom: 15px;
+}
+
+/* Additional Safari-specific fix for buttons */
+@supports (-webkit-touch-callout: none) {
+    .leaderboard-buttons {
+        /* Increase bottom margin specifically for Safari to avoid cut-off */
+        margin-bottom: 35px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 25px));
+    }
+    
+    /* Ensure footer text is visible above Safari nav bar */
+    .footer-text {
+        margin-bottom: calc(10px + env(safe-area-inset-bottom, 15px));
+        position: relative;
+        z-index: 5;
+    }
 }
 
 .leaderboard-buttons .game-button {
